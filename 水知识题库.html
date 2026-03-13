@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>护水嘉年华 - 水知识闯关答题</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #e6f7ff;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .title {
+            text-align: center;
+            color: #0066cc;
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: block;
+            width: 220px;
+            height: 50px;
+            line-height: 50px;
+            background: #0077cc;
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            border: none;
+            border-radius: 8px;
+            margin: 20px auto;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #005fa3;
+        }
+        .quiz-area {
+            display: none;
+        }
+        .question {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #0077cc;
+            background: #f7fcff;
+        }
+        .question-text {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .options {
+            margin-left: 10px;
+        }
+        .option {
+            margin: 8px 0;
+        }
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0f8ff;
+            border-radius: 10px;
+        }
+        .score {
+            font-size: 24px;
+            color: #0066cc;
+            text-align: center;
+            font-weight: bold;
+        }
+        .analysis {
+            margin-top: 20px;
+        }
+        .item {
+            margin: 12px 0;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        .hide {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">护水嘉年华 · 水知识闯关答题</div>
+        <div class="subtitle">每题10分，满分100分，随机抽取题库挑战</div>
+
+        <button class="btn" id="drawBtn">点击抽签开始答题</button>
+
+        <div class="quiz-area" id="quizArea">
+            <div id="quizContainer"></div>
+            <button class="btn" id="submitBtn">提交答案</button>
+        </div>
+
+        <div class="result" id="resultArea">
+            <div class="score" id="scoreText"></div>
+            <div class="analysis" id="analysis"></div>
+            <button class="btn" onclick="location.reload()">再来一次</button>
+        </div>
+    </div>
+
+    <script>
+        // 全套10组进阶题库（你提供的完整题目+答案+解析）
+        const questionBank = [
+            // 第1组
+            [
+                { q: "地球淡水资源中，占比最高的存在形式是？", a: "C", options: ["A.河湖水", "B.地下水", "C.冰川与永久积雪", "D.大气水"], desc: "全球淡水资源约68.7%以冰川、积雪形式存在。" },
+                { q: "我国《水法》规定，国家对水资源实行的管理体制是？", a: "A", options: ["A.流域管理与行政区域管理相结合", "B.单一行政区域管理", "C.单一流域管理", "D.地方自主管理"], desc: "我国实行流域与区域相结合的水资源管理体制。" },
+                { q: "下列哪种物质属于水体中的持久性有机污染物？", a: "B", options: ["A.泥沙", "B.多氯联苯", "C.无机盐", "D.动植物残体"], desc: "多氯联苯属于难降解、高危害的持久性有机污染物。" },
+                { q: "节水型城市居民生活用水定额应控制在多少升/人·日以内？", a: "C", options: ["A.80", "B.100", "C.120", "D.150"], desc: "国家节水型城市考核标准为≤120升/人·日。" },
+                { q: "松花江属于我国七大水系中的哪一水系？", a: "A", options: ["A.黑龙江水系", "B.黄河水系", "C.淮河水系", "D.辽河水系"], desc: "松花江是黑龙江最大支流，属于黑龙江水系。" },
+                { q: "反渗透技术在净水处理中主要去除水中的？", a: "D", options: ["A.悬浮物", "B.异味", "C.细菌", "D.可溶性盐类"], desc: "反渗透核心作用是去除水中溶解性盐类与离子。" },
+                { q: "世界气象组织规定，连续几个月降水偏少50%以上为严重干旱？", a: "B", options: ["A.2", "B.3", "C.4", "D.5"], desc: "连续3个月降水量显著偏少即判定为严重干旱。" },
+                { q: "下列灌溉方式中水利用效率最高的是？", a: "A", options: ["A.微灌", "B.喷灌", "C.沟灌", "D.畦灌"], desc: "微灌（滴灌、微喷）是目前水利用率最高的灌溉技术。" },
+                { q: "我国饮用水水源地保护分为几级保护区？", a: "B", options: ["A.一", "B.二", "C.三", "D.四"], desc: "分为一级、二级饮用水水源保护区。" },
+                { q: "2026世界水日主题Water and Gender强调什么平等参与？", a: "C", options: ["A.不同国家", "B.不同行业", "C.不同性别", "D.不同年龄"], desc: "主题核心是推动女性与男性平等参与水资源管理。" }
+            ],
+            // 第2组
+            [
+                { q: "水体富营养化的主要诱因是水中什么含量过高？", a: "A", options: ["A.氮、磷", "B.钾、钠", "C.钙、镁", "D.铁、锰"], desc: "氮、磷过量是造成水体富营养化、水华的主因。" },
+                { q: "南水北调中线工程取水源头是？", a: "B", options: ["A.长江三峡", "B.丹江口水库", "C.千岛湖", "D.太湖"], desc: "中线工程从湖北丹江口水库引水。" },
+                { q: "可实现污水深度脱氮除磷的工艺是？", a: "C", options: ["A.初沉池", "B.曝气池", "C.A²/O工艺", "D.消毒池"], desc: "A²/O是主流脱氮除磷工艺。" },
+                { q: "全球水资源开发利用程度警戒线是？", a: "D", options: ["A.10%", "B.15%", "C.20%", "D.40%"], desc: "国际公认开发利用率超过40%即面临缺水风险。" },
+                { q: "节水龙头流量限值不大于多少升/分钟？", a: "B", options: ["A.8", "B.9", "C.10", "D.11"], desc: "0.1MPa水压下节水龙头流量≤9L/min。" },
+                { q: "下列属于缓发性水文灾害的是？", a: "A", options: ["A.水资源短缺", "B.洪水", "C.泥石流", "D.冰凌"], desc: "水资源短缺是长期累积形成的缓发性灾害。" },
+                { q: "我国地下水质量标准分为几类？", a: "C", options: ["A.3", "B.4", "C.5", "D.6"], desc: "地下水质量标准从优到劣分为Ⅰ~Ⅴ类。" },
+                { q: "湿地净化水质作用机制不包括？", a: "D", options: ["A.物理沉降", "B.生物降解", "C.化学吸附", "D.高温分解"], desc: "湿地净化不包含高温分解作用。" },
+                { q: "世界第一座现代污水处理厂建于哪个国家？", a: "B", options: ["A.法国", "B.英国", "C.美国", "D.德国"], desc: "1882年英国建成世界第一座现代污水处理厂。" },
+                { q: "校园中水回用水不可用于？", a: "A", options: ["A.饮用", "B.冲厕", "C.绿化灌溉", "D.道路清扫"], desc: "中水是非饮用水，不可用于饮用。" }
+            ],
+            // 第3组
+            [
+                { q: "水的硬度主要由水中哪种离子决定？", a: "C", options: ["A.氢、氧", "B.氯、硫", "C.钙、镁", "D.铁、铜"], desc: "钙、镁离子浓度决定水的硬度。" },
+                { q: "南水北调东线工程主要输水方式是？", a: "A", options: ["A.京杭大运河河道输水", "B.专用管道输水", "C.明渠输水", "D.隧洞输水"], desc: "东线利用京杭大运河及平行河道输水。" },
+                { q: "下列不属于饮用水常规消毒剂的是？", a: "D", options: ["A.液氯", "B.二氧化氯", "C.臭氧", "D.甲醛"], desc: "甲醛有毒，不能用于饮用水消毒。" },
+                { q: "我国人均水资源量低于多少立方米为重度缺水？", a: "B", options: ["A.1000", "B.1700", "C.2000", "D.3000"], desc: "低于1700m³/人即被联合国列为重度缺水国家。" },
+                { q: "海绵城市年径流总量控制率核心目标是？", a: "C", options: ["A.60%", "B.70%", "C.80%", "D.90%"], desc: "我国海绵城市建设目标为年径流总量控制率≥80%。" },
+                { q: "水体自净中属于生物自净的是？", a: "B", options: ["A.泥沙沉降", "B.微生物分解", "C.紫外线杀菌", "D.污染物稀释"], desc: "微生物分解有机物是典型生物自净作用。" },
+                { q: "世界水理事会总部位于？", a: "A", options: ["A.法国马赛", "B.瑞士日内瓦", "C.美国纽约", "D.日本东京"], desc: "世界水理事会总部设于法国马赛。" },
+                { q: "下列属于农业农艺节水的是？", a: "D", options: ["A.滴灌设备", "B.防渗渠道", "C.节水水泵", "D.耐旱作物种植"], desc: "种植耐旱作物属于农艺节水措施。" },
+                { q: "排水户排放污水应符合？", a: "B", options: ["A.饮用水标准", "B.污水排入城镇下水道水质标准", "C.地表水Ⅲ类标准", "D.中水回用标准"], desc: "需符合《污水排入城镇下水道水质标准》。" },
+                { q: "冰川融化海平面上升主要影响哪类水资源？", a: "C", options: ["A.淡水资源", "B.地下水资源", "C.海洋水资源", "D.河湖水系"], desc: "冰川融水最终汇入海洋，影响海洋水资源平衡。" }
+            ],
+            // 第4组
+            [
+                { q: "地表水Ⅰ类水适用于？", a: "A", options: ["A.源头水、国家自然保护区", "B.集中饮用水源", "C.一般景观用水", "D.农业用水"], desc: "Ⅰ类水质最优，适用于源头水、自然保护区。" },
+                { q: "我国节水型社会建设核心是？", a: "B", options: ["A.减少用水总量", "B.提高水资源利用效率和效益", "C.限制工业用水", "D.降低居民用水"], desc: "核心是提效率、增效益。" },
+                { q: "全球海水淡化主流技术占比70%以上的是？", a: "C", options: ["A.电渗析", "B.低温多效蒸馏", "C.反渗透", "D.多级闪蒸"], desc: "反渗透是目前最主流海水淡化技术。" },
+                { q: "水土流失主要危害不包括？", a: "D", options: ["A.土壤肥力下降", "B.河道淤积", "C.水源涵养能力降低", "D.水体富营养化"], desc: "富营养化由氮磷超标引起，与水土流失无直接关系。" },
+                { q: "城市供水管网漏损率国家考核控制在多少以下？", a: "B", options: ["A.10%", "B.15%", "C.20%", "D.25%"], desc: "国家标准供水管网漏损率≤15%。" },
+                { q: "可作为水体污染指示生物的是？", a: "A", options: ["A.颤蚓", "B.鲤鱼", "C.荷花", "D.芦苇"], desc: "颤蚓大量出现代表水体有机污染严重。" },
+                { q: "我国首次提出节水型社会概念的时间是？", a: "C", options: ["A.1980年", "B.1990年", "C.2000年", "D.2010年"], desc: "2000年正式提出节水型社会建设。" },
+                { q: "雨水收集系统初期雨水弃流原因是？", a: "B", options: ["A.水量过小", "B.污染物浓度高", "C.水温过低", "D.含氧量低"], desc: "初期雨水冲刷地面，污染物浓度最高。" },
+                { q: "下列属于水资源调配工程的是？", a: "D", options: ["A.水库", "B.水闸", "C.堤防", "D.引汉济渭"], desc: "引汉济渭是跨流域水资源调配重点工程。" },
+                { q: "水体溶解氧(DO)低于多少mg/L鱼类窒息死亡？", a: "A", options: ["A.2", "B.4", "C.6", "D.8"], desc: "溶解氧＜2mg/L时鱼类无法生存。" }
+            ],
+            // 第5组
+            [
+                { q: "我国水污染防治法规定水环境质量实行？", a: "C", options: ["A.岗位责任制", "B.集体负责制", "C.河长制", "D.首长负责制"], desc: "国家全面推行河长制，负责水环境质量。" },
+                { q: "工业节水核心措施是？", a: "A", options: ["A.清洁生产与废水循环利用", "B.减少生产规模", "C.提高水价", "D.限制用水时段"], desc: "循环利用与清洁生产是工业节水根本路径。" },
+                { q: "地表水体更新周期最长的是？", a: "D", options: ["A.河流", "B.湖泊", "C.沼泽", "D.冰川"], desc: "冰川更新周期可达数千年至上万年。" },
+                { q: "节水型坐便器用水量不大于多少升/次？", a: "B", options: ["A.5", "B.6", "C.7", "D.8"], desc: "国标节水型坐便器用水量≤6L/次。" },
+                { q: "我国七大水系中水资源量最丰富的是？", a: "A", options: ["A.长江水系", "B.黄河水系", "C.珠江水系", "D.松花江水系"], desc: "长江水量全国第一。" },
+                { q: "水体面源污染主要来源是？", a: "C", options: ["A.工业废水", "B.生活污水", "C.农业与城市径流", "D.垃圾渗滤液"], desc: "农业化肥、城市雨水径流是主要面源污染。" },
+                { q: "世界银行规定水资源开发利用率超过多少面临严重短缺？", a: "B", options: ["A.30%", "B.40%", "C.50%", "D.60%"], desc: "超过40%即进入缺水警戒线。" },
+                { q: "海绵城市核心技术路径不包括？", a: "D", options: ["A.渗", "B.滞", "C.蓄", "D.排"], desc: "海绵城市六字方针：渗、滞、蓄、净、用、排，排是基础不是核心目标。" },
+                { q: "下列属于水中耗氧有机物的是？", a: "B", options: ["A.重金属", "B.碳水化合物", "C.硝酸盐", "D.硫酸盐"], desc: "碳水化合物分解消耗大量溶解氧。" },
+                { q: "2026中国水周国家水网建设核心是？", a: "A", options: ["A.南北调配、东西互济", "B.单一供水、局部覆盖", "C.重建设、轻管理", "D.重开发、轻保护"], desc: "国家水网以“南北调配、东西互济”为核心格局。" }
+            ],
+            // 第6组
+            [
+                { q: "地下水按埋藏条件分为包气带水、潜水和？", a: "C", options: ["A.浅层地下水", "B.深层地下水", "C.承压水", "D.岩溶水"], desc: "地下水三大类：包气带水、潜水、承压水。" },
+                { q: "下列属于生态污水处理技术的是？", a: "B", options: ["A.活性污泥法", "B.人工湿地", "C.膜分离", "D.化学混凝"], desc: "人工湿地是典型生态处理工艺。" },
+                { q: "城市居民生活用水占比最高的环节是？", a: "A", options: ["A.冲厕", "B.洗衣", "C.洗澡", "D.厨房用水"], desc: "冲厕用水占家庭生活用水约30%~40%。" },
+                { q: "水资源承载能力可支撑？", a: "D", options: ["A.人口数量", "B.经济规模", "C.生态环境", "D.以上都是"], desc: "承载能力包含人口、经济、生态综合支撑。" },
+                { q: "哪种消毒剂消毒后易产生消毒副产物？", a: "A", options: ["A.液氯", "B.臭氧", "C.紫外线", "D.二氧化氯"], desc: "液氯与有机物反应易生成消毒副产物。" },
+                { q: "我国第一座大型水电站是？", a: "B", options: ["A.三峡水电站", "B.新安江水电站", "C.葛洲坝水电站", "D.小浪底水电站"], desc: "新安江水电站是我国第一座大型水电站。" },
+                { q: "水体富营养化会出现？", a: "C", options: ["A.黑臭", "B.酸化", "C.水华/赤潮", "D.盐化"], desc: "氮磷过量导致藻类爆发，形成水华。" },
+                { q: "农业用水占我国总用水量比例约为？", a: "D", options: ["A.30%", "B.40%", "C.50%", "D.60%"], desc: "农业用水占全国用水总量约60%。" },
+                { q: "节水洗衣机1级水效洗净比不低于？", a: "C", options: ["A.1.03", "B.1.05", "C.1.08", "D.1.10"], desc: "1级水效洗衣机洗净比≥1.08。" },
+                { q: "世界水日发起机构是？", a: "A", options: ["A.联合国环境规划署与世界气象组织", "B.世界卫生组织", "C.世界水理事会", "D.联合国开发计划署"], desc: "由联合国环境署、世界气象组织联合发起。" }
+            ],
+            // 第7组
+            [
+                { q: "地表水浑浊度主要由什么引起？", a: "B", options: ["A.溶解物", "B.悬浮物", "C.胶体", "D.微生物"], desc: "泥沙、浮游生物等悬浮物造成水浑浊。" },
+                { q: "引黄济青工程主要作用是？", a: "C", options: ["A.防洪", "B.发电", "C.城市供水", "D.农业灌溉"], desc: "引黄河水供应青岛城市用水。" },
+                { q: "不属于废水深度处理工艺的是？", a: "D", options: ["A.活性炭吸附", "B.膜过滤", "C.高级氧化", "D.格栅过滤"], desc: "格栅仅做预处理，不属于深度处理。" },
+                { q: "水资源特性不包括？", a: "A", options: ["A.不可再生性", "B.流动性", "C.时空分布不均", "D.多功能性"], desc: "水资源属于可再生资源，但更新速度有限。" },
+                { q: "城市绿化灌溉禁止使用的方式是？", a: "B", options: ["A.滴灌", "B.大水漫灌", "C.微喷灌", "D.渗灌"], desc: "大水漫灌浪费严重，国家明令禁止。" },
+                { q: "天然水体pH正常范围是？", a: "C", options: ["A.5.0-6.5", "B.6.0-7.0", "C.6.5-8.5", "D.8.0-9.5"], desc: "地表水体适宜pH为6.5~8.5。" },
+                { q: "2025年万元GDP用水量较2020年下降目标？", a: "B", options: ["A.10%", "B.16%", "C.20%", "D.25%"], desc: "十四五规划目标下降16%。" },
+                { q: "下列属于非常规水资源的是？", a: "A", options: ["A.再生水", "B.河湖水", "C.地下水", "D.饮用水"], desc: "再生水、雨水、海水均属非常规水资源。" },
+                { q: "水库主要功能不包括？", a: "D", options: ["A.防洪", "B.供水", "C.发电", "D.水污染治理"], desc: "水库不具备水污染治理核心功能。" },
+                { q: "哪种行为会导致地下水咸化？", a: "C", options: ["A.雨水入渗", "B.农田灌溉", "C.海水倒灌", "D.污水排放"], desc: "海水入侵地下水会造成水质咸化。" }
+            ],
+            // 第8组
+            [
+                { q: "活性污泥法处理污水核心利用？", a: "B", options: ["A.原生动物", "B.微生物", "C.后生动物", "D.藻类"], desc: "利用微生物代谢分解水中污染物。" },
+                { q: "我国水资源时空分布特点是？", a: "A", options: ["A.南多北少、东多西少，夏秋多、冬春少", "B.南少北多、东少西多，夏秋多、冬春少", "C.南多北少、东多西少，夏秋少、冬春多", "D.南少北多、东少西多，夏秋少、冬春多"], desc: "我国水资源总体南多北少、夏秋集中。" },
+                { q: "节水型用水器具适用标识是？", a: "C", options: ["A.能源效率标识", "B.环保标识", "C.水效标识", "D.质量标识"], desc: "我国用水器具实行水效标识制度。" },
+                { q: "属于突发性水污染事故的是？", a: "B", options: ["A.农业面源污染", "B.化工厂废水泄漏", "C.生活污水排放", "D.水土流失"], desc: "企业泄漏属于突然发生的污染事件。" },
+                { q: "我国最大淡水湖是？", a: "A", options: ["A.鄱阳湖", "B.洞庭湖", "C.太湖", "D.洪泽湖"], desc: "江西鄱阳湖是中国第一大淡水湖。" },
+                { q: "节水型淋浴器流量限值为多少升/分钟？", a: "D", options: ["A.5", "B.6", "C.7", "D.8"], desc: "节水淋浴器流量≤8L/min。" },
+                { q: "去除水中重金属离子常用工艺？", a: "C", options: ["A.沉淀", "B.过滤", "C.离子交换", "D.消毒"], desc: "离子交换可高效去除重金属离子。" },
+                { q: "世界水资源最丰富的国家是？", a: "B", options: ["A.中国", "B.巴西", "C.俄罗斯", "D.加拿大"], desc: "巴西水资源总量位居世界第一。" },
+                { q: "雨污分流核心目的是？", a: "A", options: ["A.减少污水厂负荷，防止初期雨水污染", "B.降低成本", "C.提高排水速度", "D.便于维护"], desc: "分流制可大幅提升污水处理效率、减少污染。" },
+                { q: "水资源管理三条红线不包括？", a: "D", options: ["A.开发利用控制红线", "B.用水效率控制红线", "C.水功能区限制纳污红线", "D.水资源保护面积红线"], desc: "三条红线：用水总量、效率、纳污上限。" }
+            ],
+            // 第9组
+            [
+                { q: "岩溶水储存于哪种地层？", a: "C", options: ["A.砂土层", "B.黏土层", "C.碳酸盐岩地层", "D.花岗岩地层"], desc: "岩溶水存在于石灰岩、白云岩等碳酸盐岩地层。" },
+                { q: "小浪底水利枢纽位于哪条河流？", a: "B", options: ["A.长江", "B.黄河", "C.淮河", "D.海河"], desc: "小浪底是黄河流域关键水利工程。" },
+                { q: "下列不属于水中重金属污染物的是？", a: "A", options: ["A.钠", "B.汞", "C.镉", "D.铅"], desc: "钠是常量元素，不属于重金属污染物。" },
+                { q: "规模以上工业企业用水重复利用率不低于？", a: "C", options: ["A.70%", "B.75%", "C.80%", "D.85%"], desc: "国家考核标准≥80%。" },
+                { q: "雨水利用潜力与城市什么最相关？", a: "B", options: ["A.人口数量", "B.降雨总量与分布", "C.面积大小", "D.工业规模"], desc: "降雨量直接决定雨水可利用量。" },
+                { q: "总氮(TN)是衡量水体什么的指标？", a: "A", options: ["A.富营养化", "B.重金属污染", "C.有机物污染", "D.酸碱程度"], desc: "总氮、总磷是富营养化核心指标。" },
+                { q: "我国第一部水资源保护法规是？", a: "C", options: ["A.环境保护法", "B.水污染防治法", "C.水法", "D.水土保持法"], desc: "《水法》是我国水资源管理基本法。" },
+                { q: "下列属于工程节水灌溉的是？", a: "B", options: ["A.秸秆覆盖", "B.防渗渠道", "C.测土配方施肥", "D.轮作休耕"], desc: "防渗渠道减少渗漏，属于工程节水。" },
+                { q: "节水型城市再生水利用率不低于？", a: "D", options: ["A.15%", "B.20%", "C.25%", "D.30%"], desc: "国标要求再生水利用率≥30%。" },
+                { q: "哪种自然因素加剧水资源短缺？", a: "A", options: ["A.全球气候变暖", "B.台风", "C.暴雨", "D.寒潮"], desc: "气候变暖导致蒸发加剧、干旱频发。" }
+            ],
+            // 第10组
+            [
+                { q: "MBR膜生物反应器结合了什么与膜过滤？", a: "C", options: ["A.活性污泥法", "B.生物膜法", "C.以上都是", "D.以上都不是"], desc: "MBR是生物处理+膜分离的组合工艺。" },
+                { q: "南水北调工程供水目标不包括？", a: "D", options: ["A.华北地区", "B.黄淮海流域", "C.胶东地区", "D.西北地区"], desc: "南水北调主要服务华北、黄淮海地区。" },
+                { q: "饮用水中硝酸盐限值为多少mg/L？", a: "B", options: ["A.5", "B.10", "C.20", "D.30"], desc: "国标GB5749-2022规定硝酸盐≤10mg/L。" },
+                { q: "水资源可持续利用核心是不损害？", a: "C", options: ["A.上一代人", "B.同一代人", "C.后代人", "D.其他国家"], desc: "可持续发展核心是代际公平。" },
+                { q: "城市用水效率最高的类型是？", a: "A", options: ["A.工业用水", "B.居民生活用水", "C.农业用水", "D.绿化用水"], desc: "工业用水重复利用率最高，效率最优。" },
+                { q: "水体黑臭主要原因是水中什么含量过高？", a: "D", options: ["A.硝酸盐", "B.磷酸盐", "C.重金属", "D.有机污染物"], desc: "有机物分解耗尽溶解氧，导致水体发黑发臭。" },
+                { q: "我国水功能区分为几类？", a: "C", options: ["A.5", "B.6", "C.7", "D.8"], desc: "共分为7类水功能区。" },
+                { q: "世界上第一个提出水安全概念的国家是？", a: "B", options: ["A.中国", "B.荷兰", "C.美国", "D.澳大利亚"], desc: "荷兰最早提出水安全国家战略。" },
+                { q: "节水型洁具水效检测依据是？", a: "A", options: ["A.《卫生陶瓷》国家标准", "B.节水型产品技术要求", "C.生活饮用水标准", "D.污水排放标准"], desc: "依据GB/T 6952《卫生陶瓷》。" },
+                { q: "我国护水节水基本国策是？", a: "C", options: ["A.节约用水、防治水污染", "B.保护水资源、合理开发", "C.节约用水、保护水资源", "D.合理开发、永续利用"], desc: "我国基本国策：节约用水、保护水资源。" }
+            ]
+        ];
+
+        let currentQuestions = [];
+        let userAnswers = [];
+
+        // 抽签随机抽一组
+        document.getElementById('drawBtn').onclick = function () {
+            const randomIndex = Math.floor(Math.random() * questionBank.length);
+            currentQuestions = questionBank[randomIndex];
+            renderQuiz();
+            document.getElementById('drawBtn').style.display = 'none';
+            document.getElementById('quizArea').style.display = 'block';
+        };
+
+        // 渲染题目
+        function renderQuiz() {
+            const container = document.getElementById('quizContainer');
+            container.innerHTML = '';
+            currentQuestions.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'question';
+                let html = `<div class="question-text">${index + 1}. ${item.q}</div><div class="options">`;
+                item.options.forEach(opt => {
+                    html += `<div class="option"><label><input type="radio" name="q${index}" value="${opt.charAt(0)}"> ${opt}</label></div>`;
+                });
+                html += `</div>`;
+                div.innerHTML = html;
+                container.appendChild(div);
+            });
+        }
+
+        // 提交判分
+        document.getElementById('submitBtn').onclick = function () {
+            userAnswers = [];
+            let score = 0;
+            currentQuestions.forEach((item, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                const ans = selected ? selected.value : '';
+                userAnswers.push(ans);
+                if (ans === item.a) score += 10;
+            });
+
+            // 显示结果
+            document.getElementById('quizArea').style.display = 'none';
+            document.getElementById('resultArea').style.display = 'block';
+            document.getElementById('scoreText').innerText = `你的得分：${score} 分（满分100分）`;
+
+            // 显示解析
+            let analysisHtml = '';
+            currentQuestions.forEach((item, index) => {
+                const ua = userAnswers[index] || '未作答';
+                const isCorrect = ua === item.a;
+                analysisHtml += `
+                <div class="item">
+                    <div>${index + 1}. ${item.q}</div>
+                    <div>你的答案：${ua} 正确答案：${item.a}</div>
+                    <div style="color:${isCorrect?'#009900':'#cc0000'}">${isCorrect?'✔ 正确':'✘ 错误'} | 解析：${item.desc}</div>
+                </div>`;
+            });
+            document.getElementById('analysis').innerHTML = analysisHtml;
+        };
+    </script>
+</body>
+</html>
